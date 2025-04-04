@@ -1,27 +1,53 @@
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, CreditCard, Info } from 'lucide-react';
+import { ChevronLeft, CreditCard, Info, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import PaymentProofUploader from '@/components/PaymentProofUploader';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentProofUploaded, setPaymentProofUploaded] = useState(false);
+  const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
-    cardNumber: '',
-    expiryDate: '',
-    cvv: ''
+    birthdate: '',
+    paymentReference: ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Auto-generate payment reference when first and last name are filled
+    if ((name === 'firstName' || name === 'lastName') && formData.birthdate) {
+      const fullName = name === 'firstName' 
+        ? `${value} ${formData.lastName}` 
+        : `${formData.firstName} ${value}`;
+      
+      if (fullName.trim() !== '' && formData.birthdate) {
+        const reference = `${fullName.trim().replace(/\s+/g, '')}${formData.birthdate.replace(/-/g, '')}`;
+        setFormData(prev => ({ ...prev, paymentReference: reference }));
+      }
+    }
+    
+    if (name === 'birthdate' && formData.firstName && formData.lastName) {
+      const fullName = `${formData.firstName} ${formData.lastName}`;
+      const reference = `${fullName.trim().replace(/\s+/g, '')}${value.replace(/-/g, '')}`;
+      setFormData(prev => ({ ...prev, paymentReference: reference }));
+    }
+  };
+  
+  const handlePaymentProofUpload = (file: File) => {
+    setPaymentProof(file);
+    setPaymentProofUploaded(true);
+    toast.success('Proof of payment uploaded successfully');
   };
 
   const isFormValid = () => {
@@ -29,9 +55,8 @@ const Checkout = () => {
       formData.firstName.trim() !== '' &&
       formData.lastName.trim() !== '' &&
       formData.email.trim() !== '' &&
-      formData.cardNumber.trim() !== '' &&
-      formData.expiryDate.trim() !== '' &&
-      formData.cvv.trim() !== ''
+      formData.birthdate.trim() !== '' &&
+      paymentProofUploaded
     );
   };
 
@@ -39,15 +64,29 @@ const Checkout = () => {
     e.preventDefault();
     
     if (!isFormValid()) {
-      toast.error('Please fill in all required fields');
+      toast.error('Please fill in all required fields and upload proof of payment');
+      return;
+    }
+    
+    if (!paymentProofUploaded) {
+      toast.error('Please upload proof of payment to complete your booking');
       return;
     }
     
     setIsProcessing(true);
     
-    // Simulate payment processing
+    // Simulate payment verification
     setTimeout(() => {
       setIsProcessing(false);
+      
+      // Store form data in session storage for confirmation page
+      sessionStorage.setItem('bookingInfo', JSON.stringify({
+        customerName: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        birthdate: formData.birthdate,
+        paymentReference: formData.paymentReference
+      }));
+      
       navigate('/confirmation');
     }, 2000);
   };
@@ -117,67 +156,66 @@ const Checkout = () => {
                   </p>
                 </div>
                 
+                <div className="mb-6">
+                  <Label htmlFor="birthdate">Birthdate*</Label>
+                  <Input
+                    id="birthdate"
+                    name="birthdate"
+                    type="date"
+                    value={formData.birthdate}
+                    onChange={handleChange}
+                    className="mt-1"
+                    required
+                  />
+                  <p className="text-xs text-theater-muted mt-1">
+                    Required for payment reference
+                  </p>
+                </div>
+                
                 <div className="border-t pt-6 mb-6">
                   <div className="flex items-center mb-4">
                     <CreditCard className="h-5 w-5 mr-2 text-theater-primary" />
-                    <h3 className="font-bold">Payment Details</h3>
+                    <h3 className="font-bold">PayShap Payment Details</h3>
+                  </div>
+                  
+                  <div className="bg-muted/30 p-4 rounded-lg mb-6">
+                    <div className="flex items-center mb-2">
+                      <AlertCircle className="h-4 w-4 text-theater-primary mr-2" />
+                      <h4 className="font-medium">Payment Instructions</h4>
+                    </div>
+                    <ol className="text-sm space-y-2 pl-6 list-decimal">
+                      <li>Open your banking app and select PayShap as payment method</li>
+                      <li>Enter the PayShap ID: <span className="font-medium">0817058446</span></li>
+                      <li>Enter the amount: <span className="font-medium">R231.00</span></li>
+                      <li>Use the reference below when making payment</li>
+                      <li>Upload a screenshot of your payment confirmation</li>
+                    </ol>
                   </div>
                   
                   <div className="mb-6">
-                    <Label htmlFor="cardNumber">Card Number*</Label>
+                    <Label htmlFor="paymentReference">Payment Reference*</Label>
                     <Input
-                      id="cardNumber"
-                      name="cardNumber"
-                      placeholder="XXXX XXXX XXXX XXXX"
-                      value={formData.cardNumber}
-                      onChange={handleChange}
-                      className="mt-1"
-                      maxLength={19}
-                      required
+                      id="paymentReference"
+                      name="paymentReference"
+                      value={formData.paymentReference}
+                      className="mt-1 font-medium"
+                      readOnly
                     />
+                    <p className="text-xs text-theater-muted mt-1">
+                      Use this reference when making payment to Mr Mahuni via PayShap
+                    </p>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="expiryDate">Expiry Date*</Label>
-                      <Input
-                        id="expiryDate"
-                        name="expiryDate"
-                        placeholder="MM/YY"
-                        value={formData.expiryDate}
-                        onChange={handleChange}
-                        className="mt-1"
-                        maxLength={5}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="cvv">CVV*</Label>
-                      <Input
-                        id="cvv"
-                        name="cvv"
-                        placeholder="XXX"
-                        value={formData.cvv}
-                        onChange={handleChange}
-                        className="mt-1"
-                        maxLength={3}
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-muted/30 p-4 rounded-lg flex items-start mb-6">
-                  <Info className="h-5 w-5 text-theater-muted mt-0.5 mr-2 flex-shrink-0" />
-                  <p className="text-sm text-theater-muted">
-                    Your payment information is encrypted and secure. We never store your full credit card details.
-                  </p>
+                  <PaymentProofUploader 
+                    onUploadComplete={handlePaymentProofUpload}
+                    isUploaded={paymentProofUploaded}
+                  />
                 </div>
                 
                 <Button
                   type="submit"
                   className="w-full bg-theater-primary py-6 text-lg"
-                  disabled={isProcessing}
+                  disabled={isProcessing || !paymentProofUploaded}
                 >
                   {isProcessing ? 'Processing Payment...' : 'Complete Purchase'}
                 </Button>
