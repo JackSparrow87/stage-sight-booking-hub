@@ -67,15 +67,15 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))'
         },
-        // Theatre booking custom colors
+        // Updated African theme colors
         theater: {
-          primary: '#6E59A5',
-          secondary: '#9b87f5',
-          accent: '#FEC6A1',
-          background: '#F6F6F7',
-          dark: '#333333',
-          muted: '#8E9196',
-          light: '#FFFFFF',
+          primary: '#E05D14',    // Bright Terracotta
+          secondary: '#F97316',  // Bright Orange
+          accent: '#FEF7CD',     // Soft Yellow
+          background: '#FDF5EC', // Warm Beige
+          dark: '#443627',       // Rich Brown
+          muted: '#8A7968',      // Muted Earth
+          light: '#FFFFFF',      // White
         },
       },
       borderRadius: {
@@ -116,6 +116,10 @@ export default {
         'elevation-1': '0 2px 4px rgba(0, 0, 0, 0.05)',
         'elevation-2': '0 4px 6px rgba(0, 0, 0, 0.1)',
         'elevation-3': '0 10px 15px rgba(0, 0, 0, 0.1)',
+      },
+      fontFamily: {
+        'ubuntu': ['Ubuntu', 'sans-serif'],
+        'lora': ['Lora', 'serif'],
       },
     }
   },
