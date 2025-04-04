@@ -160,7 +160,7 @@ const Confirmation = () => {
               
               <div className="flex justify-between border-t pt-4">
                 <span className="font-medium">Total Paid</span>
-                <span className="font-bold text-theater-primary">$231.00</span>
+                <span className="font-bold text-theater-primary">R3850.00</span>
               </div>
             </div>
           </div>

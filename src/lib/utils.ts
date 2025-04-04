@@ -18,9 +18,9 @@ export function formatDate(dateString: string): string {
 }
 
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-ZA', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'ZAR',
   }).format(amount);
 }
 
@@ -36,8 +36,8 @@ export const events = [
     time: '19:30',
     duration: '2h 45m',
     imageUrl: 'https://images.unsplash.com/photo-1503095396549-807759245b35?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80',
-    price: '$45.00',
-    priceRange: { min: 45, max: 120 },
+    price: 'R750.00',
+    priceRange: { min: 750, max: 2000 },
     category: 'Drama',
     featured: true,
     cast: ['John Doe', 'Jane Smith', 'Robert Johnson'],
@@ -53,8 +53,8 @@ export const events = [
     time: '20:00',
     duration: '2h 30m',
     imageUrl: 'https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
-    price: '$60.00',
-    priceRange: { min: 60, max: 150 },
+    price: 'R1000.00',
+    priceRange: { min: 1000, max: 2500 },
     category: 'Musical',
     featured: true,
     cast: ['Michael Brown', 'Jessica Taylor', 'David Wilson'],
@@ -70,8 +70,8 @@ export const events = [
     time: '19:00',
     duration: '3h',
     imageUrl: 'https://images.unsplash.com/photo-1545167622-3a6ac756afa4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1824&q=80',
-    price: '$55.00',
-    priceRange: { min: 55, max: 130 },
+    price: 'R900.00',
+    priceRange: { min: 900, max: 2200 },
     category: 'Ballet',
     featured: false,
     cast: ['Emma Clark', 'Peter Johnson', 'Sophia Martinez'],
@@ -87,8 +87,8 @@ export const events = [
     time: '19:30',
     duration: '2h 30m',
     imageUrl: 'https://images.unsplash.com/photo-1577372970039-2cf8d9be0ec9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
-    price: '$75.00',
-    priceRange: { min: 75, max: 180 },
+    price: 'R1250.00',
+    priceRange: { min: 1250, max: 3000 },
     category: 'Musical',
     featured: true,
     cast: ['James Wilson', 'Linda Martinez', 'Carlos Rodriguez'],
@@ -104,8 +104,8 @@ export const events = [
     time: '20:00',
     duration: '2h 15m',
     imageUrl: 'https://images.unsplash.com/photo-1618886470010-800d999bc25c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-    price: '$50.00',
-    priceRange: { min: 50, max: 125 },
+    price: 'R850.00',
+    priceRange: { min: 850, max: 2100 },
     category: 'Drama',
     featured: false,
     cast: ['Ryan Johnson', 'Emily Brown', 'Matthew Davis'],
@@ -121,8 +121,8 @@ export const events = [
     time: '19:00',
     duration: '2h 45m',
     imageUrl: 'https://images.unsplash.com/photo-1511715282680-fbf93a50e721?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
-    price: '$65.00',
-    priceRange: { min: 65, max: 160 },
+    price: 'R1100.00',
+    priceRange: { min: 1100, max: 2700 },
     category: 'Musical',
     featured: true,
     cast: ['Sarah Adams', 'Rachel Green', 'Daniel White'],
@@ -151,7 +151,7 @@ export function generateTheaterSeating(rows: number, seatsPerRow: number, reserv
         number: j,
         status: isReserved ? 'reserved' : 'available',
         type: isVip ? 'vip' : 'standard',
-        price: isVip ? 95 : 65,
+        price: isVip ? 1600 : 1100,
       });
     }
     

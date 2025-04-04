@@ -39,6 +39,10 @@ export const generateTicketPDF = (ticketData: TicketData): string => {
   const seatString = ticketData.seats.join(', ');
   doc.text(seatString, 50, 120);
   
+  // Price (added for South African Rand)
+  doc.text('Price:', 20, 130);
+  doc.text('R3850.00', 50, 130);
+  
   // QR code placeholder (in a real app, we'd generate a real QR code)
   doc.rect(130, 60, 50, 50);
   doc.setFontSize(8);

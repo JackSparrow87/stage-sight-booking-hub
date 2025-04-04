@@ -54,7 +54,7 @@ const EventCard: React.FC<EventCardProps> = ({
         <div className="flex justify-between items-center">
           <div>
             <span className="text-xs text-theater-muted">Starting from</span>
-            <p className="font-bold text-theater-primary">{price}</p>
+            <p className="font-bold text-theater-primary">{price.replace('$', 'R')}</p>
           </div>
           <Link to={`/events/${id}`}>
             <Button className="bg-theater-primary">Book</Button>

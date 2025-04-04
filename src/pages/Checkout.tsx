@@ -186,7 +186,7 @@ const Checkout = () => {
                     <ol className="text-sm space-y-2 pl-6 list-decimal">
                       <li>Open your banking app and select PayShap as payment method</li>
                       <li>Enter the PayShap ID: <span className="font-medium">0817058446</span></li>
-                      <li>Enter the amount: <span className="font-medium">R231.00</span></li>
+                      <li>Enter the amount: <span className="font-medium">R3850.00</span></li>
                       <li>Use the reference below when making payment</li>
                       <li>Upload a screenshot of your payment confirmation</li>
                     </ol>
@@ -250,22 +250,22 @@ const Checkout = () => {
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between">
                   <span>Tickets (3)</span>
-                  <span>$195.00</span>
+                  <span>R3300.00</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Booking Fee</span>
-                  <span>$15.00</span>
+                  <span>R250.00</span>
                 </div>
                 <div className="flex justify-between text-sm text-theater-muted">
                   <span>Taxes</span>
-                  <span>$21.00</span>
+                  <span>R300.00</span>
                 </div>
               </div>
               
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between font-bold">
                   <span>Total</span>
-                  <span className="text-theater-primary">$231.00</span>
+                  <span className="text-theater-primary">R3850.00</span>
                 </div>
               </div>
               
