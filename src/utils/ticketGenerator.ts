@@ -42,11 +42,7 @@ export const generateTicketPDF = (ticketData: TicketData): string => {
   // Price (added for South African Rand)
   doc.text('Price:', 20, 130);
   doc.text('R3850.00', 50, 130);
-  
-  // QR code placeholder (in a real app, we'd generate a real QR code)
-  doc.rect(130, 60, 50, 50);
-  doc.setFontSize(8);
-  doc.text('QR Code', 155, 85, { align: 'center' });
+
   
   // Footer
   doc.setFillColor(240, 240, 240);
