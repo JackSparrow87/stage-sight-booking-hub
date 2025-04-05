@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { supabaseExtended } from '@/integrations/supabase/client-extended';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -35,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           // Check if user is admin
           setTimeout(async () => {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseExtended
               .from('profiles')
               .select('role')
               .eq('id', session.user.id)
@@ -57,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        supabase
+        supabaseExtended
           .from('profiles')
           .select('role')
           .eq('id', session.user.id)
@@ -138,7 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logUserAction = async (action: string, metadata?: any) => {
     if (user) {
       try {
-        await supabase.from('user_logs').insert({
+        await supabaseExtended.from('user_logs').insert({
           user_id: user.id,
           action,
           metadata: metadata || {}

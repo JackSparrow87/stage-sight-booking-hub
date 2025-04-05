@@ -10,6 +10,7 @@ import AdminEventForm from "@/components/AdminEventForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { supabaseExtended } from "@/integrations/supabase/client-extended";
 import {
   TabsContent,
   Tabs,
@@ -17,6 +18,19 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { createCsv } from "@/utils/reportUtils";
+
+// Define the Event type to match what's in the AdminEventForm/AdminEventList components
+interface Event {
+  id: string;
+  title: string;
+  venue: string;
+  date: string;
+  time: string;
+  price: string;
+  category: string;
+  imageUrl: string;
+  description: string;
+}
 
 // API functions connected to Supabase
 const fetchEvents = async () => {
@@ -29,11 +43,22 @@ const fetchEvents = async () => {
     throw error;
   }
   
-  return data;
+  // Transform the data to match our Event interface
+  return data.map(show => ({
+    id: show.id,
+    title: show.title,
+    venue: show.venue || '',
+    date: new Date(show.date).toISOString().split('T')[0], // Get date part
+    time: new Date(show.date).toTimeString().slice(0, 5), // Get time part
+    price: show.price.toString(),
+    category: show.category || '',
+    imageUrl: show.image_url,
+    description: show.description
+  }));
 };
 
 const fetchUserLogs = async () => {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseExtended
     .from('user_logs')
     .select(`
       *,
@@ -110,14 +135,17 @@ const Admin = () => {
 
   // Create mutation
   const createEventMutation = useMutation({
-    mutationFn: async (eventData: any) => {
+    mutationFn: async (eventData: Event) => {
+      // Combine date and time into a single ISO string
+      const dateTime = new Date(`${eventData.date}T${eventData.time}`);
+      
       const { error } = await supabase
         .from('shows')
         .insert([{
           title: eventData.title,
           description: eventData.description,
           venue: eventData.venue,
-          date: new Date(eventData.date + 'T' + eventData.time),
+          date: dateTime.toISOString(),
           image_url: eventData.imageUrl || '/placeholder.svg',
           price: parseFloat(eventData.price.replace(/[^0-9.]/g, '')),
           available_seats: 100, // Default value
@@ -139,14 +167,17 @@ const Admin = () => {
 
   // Update mutation
   const updateEventMutation = useMutation({
-    mutationFn: async (eventData: any) => {
+    mutationFn: async (eventData: Event) => {
+      // Combine date and time into a single ISO string
+      const dateTime = new Date(`${eventData.date}T${eventData.time}`);
+      
       const { error } = await supabase
         .from('shows')
         .update({
           title: eventData.title,
           description: eventData.description,
           venue: eventData.venue,
-          date: new Date(eventData.date + 'T' + eventData.time),
+          date: dateTime.toISOString(),
           image_url: eventData.imageUrl,
           price: parseFloat(eventData.price.replace(/[^0-9.]/g, '')),
           category: eventData.category
