@@ -12,7 +12,9 @@ import SeatSelection from "./pages/SeatSelection";
 import Checkout from "./pages/Checkout";
 import Confirmation from "./pages/Confirmation";
 import Admin from "./pages/Admin";
+import Auth from "./pages/Auth";
 import Layout from "./components/Layout";
+import { AuthProvider } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
@@ -22,18 +24,21 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Index />} />
-            <Route path="events" element={<Events />} />
-            <Route path="events/:id" element={<EventDetails />} />
-            <Route path="seating/:id" element={<SeatSelection />} />
-            <Route path="checkout" element={<Checkout />} />
-            <Route path="confirmation" element={<Confirmation />} />
-            <Route path="admin" element={<Admin />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Index />} />
+              <Route path="events" element={<Events />} />
+              <Route path="events/:id" element={<EventDetails />} />
+              <Route path="seating/:id" element={<SeatSelection />} />
+              <Route path="checkout" element={<Checkout />} />
+              <Route path="confirmation" element={<Confirmation />} />
+              <Route path="admin" element={<Admin />} />
+              <Route path="auth" element={<Auth />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
