@@ -11,6 +11,7 @@ import EventDetails from "./pages/EventDetails";
 import SeatSelection from "./pages/SeatSelection";
 import Checkout from "./pages/Checkout";
 import Confirmation from "./pages/Confirmation";
+import Admin from "./pages/Admin";
 import Layout from "./components/Layout";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="seating/:id" element={<SeatSelection />} />
             <Route path="checkout" element={<Checkout />} />
             <Route path="confirmation" element={<Confirmation />} />
+            <Route path="admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
