@@ -13,6 +13,7 @@ import Checkout from "./pages/Checkout";
 import Confirmation from "./pages/Confirmation";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
+import AdminAuth from "./pages/AdminAuth";
 import Layout from "./components/Layout";
 import Search from "./pages/Search";
 import Cart from "./pages/Cart";
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="confirmation" element={<Confirmation />} />
               <Route path="admin" element={<Admin />} />
               <Route path="auth" element={<Auth />} />
+              <Route path="admin-auth" element={<AdminAuth />} />
               <Route path="search" element={<Search />} />
               <Route path="cart" element={<Cart />} />
               <Route path="*" element={<NotFound />} />

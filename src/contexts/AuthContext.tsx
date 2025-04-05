@@ -42,8 +42,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .eq('id', session.user.id)
               .single();
               
-            if (!error && data) {
+            if (!error && data && data.role) {
               setIsAdmin(data.role === 'admin');
+            } else {
+              setIsAdmin(false);
             }
           }, 0);
         } else {
@@ -64,9 +66,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .eq('id', session.user.id)
           .single()
           .then(({ data, error }) => {
-            if (!error && data) {
+            if (!error && data && data.role) {
               setIsAdmin(data.role === 'admin');
             }
+            setIsLoading(false);
+          })
+          .catch(() => {
             setIsLoading(false);
           });
       } else {
