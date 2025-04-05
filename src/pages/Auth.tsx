@@ -1,20 +1,34 @@
 
-import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Shield } from 'lucide-react';
 
 const Auth = () => {
-  const { user, signIn, signUp } = useAuth();
+  const { user, signIn, signUp, isAdmin } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const location = useLocation();
+
+  // Check URL for admin parameter
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('admin') === 'true') {
+      setIsAdminMode(true);
+    }
+  }, [location]);
 
   // Redirect if already logged in
   if (user) {
+    if (isAdmin) {
+      return <Navigate to="/admin" replace />;
+    }
     return <Navigate to="/" replace />;
   }
 
@@ -28,7 +42,8 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    await signUp(email, password);
+    // The third parameter is for making an admin user
+    await signUp(email, password, isAdminMode);
     setIsLoading(false);
   };
 
@@ -36,9 +51,16 @@ const Auth = () => {
     <div className="container-custom flex items-center justify-center min-h-[70vh]">
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
-          <CardTitle className="text-center text-2xl">Welcome</CardTitle>
+          <div className="flex justify-center items-center gap-2">
+            {isAdminMode && <Shield className="h-6 w-6 text-theater-primary" />}
+            <CardTitle className="text-center text-2xl">
+              {isAdminMode ? 'Admin Access' : 'Welcome'}
+            </CardTitle>
+          </div>
           <CardDescription className="text-center">
-            Sign in to your account or create a new one
+            {isAdminMode 
+              ? 'Sign in or register as an administrator' 
+              : 'Sign in to your account or create a new one'}
           </CardDescription>
         </CardHeader>
         <Tabs defaultValue="login">
@@ -76,10 +98,10 @@ const Auth = () => {
               <CardFooter>
                 <Button 
                   type="submit" 
-                  className="w-full bg-theater-primary" 
+                  className={`w-full ${isAdminMode ? 'bg-indigo-700' : 'bg-theater-primary'}`}
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Logging in...' : 'Login'}
+                  {isLoading ? 'Logging in...' : `Login${isAdminMode ? ' as Admin' : ''}`}
                 </Button>
               </CardFooter>
             </form>
@@ -115,10 +137,10 @@ const Auth = () => {
               <CardFooter>
                 <Button 
                   type="submit" 
-                  className="w-full bg-theater-primary"
+                  className={`w-full ${isAdminMode ? 'bg-indigo-700' : 'bg-theater-primary'}`}
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Creating account...' : 'Create account'}
+                  {isLoading ? 'Creating account...' : `Create ${isAdminMode ? 'Admin ' : ''}Account`}
                 </Button>
               </CardFooter>
             </form>

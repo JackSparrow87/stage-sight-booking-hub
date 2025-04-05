@@ -14,6 +14,8 @@ import Confirmation from "./pages/Confirmation";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import Layout from "./components/Layout";
+import Search from "./pages/Search";
+import Cart from "./pages/Cart";
 import { AuthProvider } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -35,6 +37,8 @@ const App = () => (
               <Route path="confirmation" element={<Confirmation />} />
               <Route path="admin" element={<Admin />} />
               <Route path="auth" element={<Auth />} />
+              <Route path="search" element={<Search />} />
+              <Route path="cart" element={<Cart />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

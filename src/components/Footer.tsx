@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Shield } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -24,18 +25,18 @@ const Footer = () => {
             <ul className="space-y-2">
               <li><Link to="/" className="text-gray-400 hover:text-white transition-colors">Home</Link></li>
               <li><Link to="/events" className="text-gray-400 hover:text-white transition-colors">Events</Link></li>
-              <li><Link to="#" className="text-gray-400 hover:text-white transition-colors">Venues</Link></li>
-              <li><Link to="#" className="text-gray-400 hover:text-white transition-colors">Gift Cards</Link></li>
+              <li><Link to="/search" className="text-gray-400 hover:text-white transition-colors">Search</Link></li>
+              <li><Link to="/cart" className="text-gray-400 hover:text-white transition-colors">Cart</Link></li>
             </ul>
           </div>
 
           <div>
             <h3 className="font-semibold text-lg mb-4">Support</h3>
             <ul className="space-y-2">
-              <li><Link to="#" className="text-gray-400 hover:text-white transition-colors">Contact Us</Link></li>
-              <li><Link to="#" className="text-gray-400 hover:text-white transition-colors">FAQs</Link></li>
-              <li><Link to="#" className="text-gray-400 hover:text-white transition-colors">Terms & Conditions</Link></li>
-              <li><Link to="#" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/contact" className="text-gray-400 hover:text-white transition-colors">Contact Us</Link></li>
+              <li><Link to="/faq" className="text-gray-400 hover:text-white transition-colors">FAQs</Link></li>
+              <li><Link to="/terms" className="text-gray-400 hover:text-white transition-colors">Terms & Conditions</Link></li>
+              <li><Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</Link></li>
             </ul>
           </div>
 
@@ -80,6 +81,11 @@ const Footer = () => {
                 <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
               </svg>
             </a>
+            {/* Admin shield icon */}
+            <Link to="/auth?admin=true" className="text-gray-400 hover:text-white transition-colors">
+              <Shield size={24} />
+              <span className="sr-only">Admin Access</span>
+            </Link>
           </div>
         </div>
       </div>

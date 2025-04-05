@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Search, ShoppingCart, User } from 'lucide-react';
+import { Menu, X, Search, ShoppingCart, User, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import NavbarLinks from '@/components/NavbarLinks';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,39 +29,8 @@ const Navbar = () => {
             <span className="font-bold text-xl hidden sm:inline-block">StageSight</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link
-              to="/"
-              className={`hover:text-theater-primary transition-colors ${
-                isActive('/') ? 'text-theater-primary font-medium' : 'text-theater-dark'
-              }`}
-            >
-              Home
-            </Link>
-            <Link
-              to="/events"
-              className={`hover:text-theater-primary transition-colors ${
-                isActive('/events') ? 'text-theater-primary font-medium' : 'text-theater-dark'
-              }`}
-            >
-              Events
-            </Link>
-          </div>
-
-          {/* Actions */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" size="icon">
-              <Search className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <ShoppingCart className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <User className="h-5 w-5" />
-            </Button>
-            <Button className="bg-theater-primary hover:bg-theater-primary/90">Book Now</Button>
-          </div>
+          {/* Desktop Navigation with NavbarLinks component */}
+          <NavbarLinks />
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center">
@@ -96,18 +66,33 @@ const Navbar = () => {
               >
                 Events
               </Link>
-            </div>
-            <div className="flex justify-between pt-4 border-t">
-              <Button variant="ghost" size="icon">
-                <Search className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <ShoppingCart className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
-              </Button>
-              <Button className="bg-theater-primary hover:bg-theater-primary/90">Book Now</Button>
+              <Link
+                to="/search"
+                className={`py-2 px-4 rounded-md hover:bg-muted ${
+                  isActive('/search') ? 'text-theater-primary font-medium bg-muted' : ''
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Search
+              </Link>
+              <Link
+                to="/cart"
+                className={`py-2 px-4 rounded-md hover:bg-muted ${
+                  isActive('/cart') ? 'text-theater-primary font-medium bg-muted' : ''
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Cart
+              </Link>
+              <Link
+                to="/auth"
+                className={`py-2 px-4 rounded-md hover:bg-muted ${
+                  isActive('/auth') ? 'text-theater-primary font-medium bg-muted' : ''
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Login/Register
+              </Link>
             </div>
           </div>
         )}
