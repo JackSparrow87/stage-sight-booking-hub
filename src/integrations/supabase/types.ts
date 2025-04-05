@@ -92,6 +92,7 @@ export type Database = {
       shows: {
         Row: {
           available_seats: number
+          category: string | null
           created_at: string | null
           date: string
           description: string
@@ -99,9 +100,11 @@ export type Database = {
           image_url: string
           price: number
           title: string
+          venue: string | null
         }
         Insert: {
           available_seats: number
+          category?: string | null
           created_at?: string | null
           date: string
           description: string
@@ -109,9 +112,11 @@ export type Database = {
           image_url: string
           price: number
           title: string
+          venue?: string | null
         }
         Update: {
           available_seats?: number
+          category?: string | null
           created_at?: string | null
           date?: string
           description?: string
@@ -119,6 +124,7 @@ export type Database = {
           image_url?: string
           price?: number
           title?: string
+          venue?: string | null
         }
         Relationships: []
       }
