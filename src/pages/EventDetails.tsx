@@ -3,7 +3,7 @@ import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Users, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { events, formatDate } from '@/lib/utils';
+import { events, formatDate, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 
 const EventDetails = () => {
@@ -114,17 +114,11 @@ const EventDetails = () => {
 
             <div className="bg-white rounded-xl shadow-elevation-1 p-6">
               <h2 className="text-2xl font-bold mb-4">Venue Information</h2>
-              <div className="flex items-start gap-4 mb-6">
+              <div className="flex items-start gap-4">
                 <MapPin className="h-5 w-5 text-theater-primary mt-1" />
                 <div>
                   <h3 className="font-bold">{event.venue}</h3>
                   <p className="text-theater-muted">{event.address}</p>
-                </div>
-              </div>
-              <div className="rounded-lg overflow-hidden h-64 bg-gray-200">
-                {/* This would be a map in a real application */}
-                <div className="h-full w-full flex items-center justify-center bg-gray-200 text-theater-muted">
-                  Interactive Map Would Appear Here
                 </div>
               </div>
             </div>
@@ -137,22 +131,22 @@ const EventDetails = () => {
               <div className="mb-4">
                 <p className="text-sm text-theater-muted">Price range</p>
                 <p className="text-xl font-bold text-theater-primary">
-                  ${event.priceRange.min} - ${event.priceRange.max}
+                  {formatCurrency(event.priceRange.min)} - {formatCurrency(event.priceRange.max)}
                 </p>
               </div>
               
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between items-center p-3 bg-muted/30 rounded-md">
                   <span>Standard Seats</span>
-                  <span className="font-medium">${event.priceRange.min}</span>
+                  <span className="font-medium">{formatCurrency(event.priceRange.min)}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-muted/30 rounded-md">
                   <span>Premium Seats</span>
-                  <span className="font-medium">${Math.floor((event.priceRange.min + event.priceRange.max) / 2)}</span>
+                  <span className="font-medium">{formatCurrency(Math.floor((event.priceRange.min + event.priceRange.max) / 2))}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-muted/30 rounded-md">
                   <span>VIP Seats</span>
-                  <span className="font-medium">${event.priceRange.max}</span>
+                  <span className="font-medium">{formatCurrency(event.priceRange.max)}</span>
                 </div>
               </div>
               
