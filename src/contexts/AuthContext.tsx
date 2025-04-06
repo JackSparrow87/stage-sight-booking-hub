@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -142,19 +141,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signOut();
       
       if (error) {
-        console.error('Sign out error:', error);
         toast.error(error.message);
-        return;
+        throw error;
       }
       
-      // Reset user state immediately
-      setUser(null);
-      setIsAdmin(false);
-      
       toast.success('Successfully signed out.');
-      navigate('/', { replace: true });
+      navigate('/');
     } catch (error) {
       console.error('Sign out error:', error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
