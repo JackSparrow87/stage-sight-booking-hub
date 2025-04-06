@@ -1,24 +1,20 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { events, generateTheaterSeating } from '@/lib/utils';
+import { events, generateTheaterSeating, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
-
-const formatCurrency = (amount: number) => {
-  return `R${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
-};
 
 const SeatSelection = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const event = events.find(e => e.id === id);
   
   const [seating, setSeating] = useState<any[]>([]);
   const [selectedSeats, setSelectedSeats] = useState<any[]>([]);
   const [randomReservedSeats] = useState<string[]>(() => {
+    // Generate random reserved seats
     const reservedSeats = [];
     for (let i = 0; i < 20; i++) {
       const row = String.fromCharCode(65 + Math.floor(Math.random() * 10));
@@ -29,6 +25,7 @@ const SeatSelection = () => {
   });
 
   useEffect(() => {
+    // Generate seating layout
     const theaterSeating = generateTheaterSeating(10, 20, randomReservedSeats);
     setSeating(theaterSeating);
   }, [randomReservedSeats]);
@@ -58,26 +55,10 @@ const SeatSelection = () => {
       toast.error('Please select at least one seat to continue.');
       return;
     }
-
-    if (!user) {
-      toast.error('You must be logged in to book tickets');
-      navigate('/auth', { state: { returnTo: `/seating/${id}` } });
-      return;
-    }
     
-    navigate('/checkout', { 
-      state: { 
-        selectedSeats: selectedSeats.map(seat => seat.id),
-        event: {
-          id: id,
-          title: event?.title,
-          date: event?.date,
-          time: event?.time,
-          venue: event?.venue
-        },
-        totalAmount: totalPrice
-      } 
-    });
+    // In a real app, we would store the selected seats and event information
+    // in a global state or context. For this demo, we'll just navigate.
+    navigate('/checkout');
   };
 
   if (!event) {
@@ -95,6 +76,7 @@ const SeatSelection = () => {
   return (
     <div className="py-8">
       <div className="container-custom">
+        {/* Breadcrumb navigation */}
         <div className="mb-6">
           <Button 
             variant="ghost" 
@@ -109,14 +91,17 @@ const SeatSelection = () => {
         <p className="text-theater-muted mb-8">{event.venue} • {event.date} • {event.time}</p>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Seating chart */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-elevation-1 p-6">
               <h2 className="text-xl font-bold mb-6">Seating Chart</h2>
               
+              {/* Stage area */}
               <div className="w-full h-16 bg-theater-primary/20 rounded-lg mb-8 flex items-center justify-center">
                 <p className="font-medium text-theater-primary">STAGE</p>
               </div>
               
+              {/* Seating layout */}
               <div className="flex justify-center mb-8 overflow-x-auto pb-4">
                 <div className="inline-block">
                   {seating.map((row, rowIndex) => (
@@ -148,6 +133,7 @@ const SeatSelection = () => {
                 </div>
               </div>
               
+              {/* Legend */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
                 <div className="flex items-center">
                   <div className="seat-available w-6 h-6 mr-2"></div>
@@ -176,6 +162,7 @@ const SeatSelection = () => {
             </div>
           </div>
           
+          {/* Order summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-elevation-1 p-6 sticky top-24">
               <h2 className="text-xl font-bold mb-4">Order Summary</h2>

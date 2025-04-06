@@ -34,9 +34,9 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact</h3>
             <ul className="space-y-2 text-gray-300">
-              <li>Email: mahuni@devsop.co.za</li>
-              <li>Phone: +27 71 234 5678</li>
-              <li>Address: 21 Main Road, Cape Town, 8001</li>
+              <li>Email: contact@theaterfy.com</li>
+              <li>Phone: +1 (555) 123-4567</li>
+              <li>Address: 123 Broadway, New York</li>
             </ul>
           </div>
           

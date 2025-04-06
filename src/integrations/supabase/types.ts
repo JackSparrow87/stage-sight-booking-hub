@@ -9,27 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      admin_codes: {
-        Row: {
-          created_at: string | null
-          employee_number: string
-          id: string
-          used: boolean | null
-        }
-        Insert: {
-          created_at?: string | null
-          employee_number: string
-          id?: string
-          used?: boolean | null
-        }
-        Update: {
-          created_at?: string | null
-          employee_number?: string
-          id?: string
-          used?: boolean | null
-        }
-        Relationships: []
-      }
       bookings: {
         Row: {
           created_at: string | null
@@ -95,29 +74,17 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string | null
-          first_name: string | null
           id: string
-          last_name: string | null
-          phone: string | null
-          role: string | null
           username: string | null
         }
         Insert: {
           created_at?: string | null
-          first_name?: string | null
           id: string
-          last_name?: string | null
-          phone?: string | null
-          role?: string | null
           username?: string | null
         }
         Update: {
           created_at?: string | null
-          first_name?: string | null
           id?: string
-          last_name?: string | null
-          phone?: string | null
-          role?: string | null
           username?: string | null
         }
         Relationships: []

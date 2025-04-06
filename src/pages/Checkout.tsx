@@ -1,24 +1,15 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, CreditCard, Info, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import PaymentProofUploader from '@/components/PaymentProofUploader';
-import { useAuth } from '@/contexts/AuthContext';
-import { saveBooking } from '@/utils/bookingUtils';
-
-// Format currency to Rands
-const formatCurrency = (amount: number) => {
-  return `R${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
-};
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentProofUploaded, setPaymentProofUploaded] = useState(false);
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
@@ -30,21 +21,11 @@ const Checkout = () => {
     paymentReference: ''
   });
 
-  const eventData = location.state?.event || {
-    id: "default-event-id",
-    title: "Hamlet",
-    date: "Apr 15, 2025",
-    time: "19:30",
-    venue: "Royal Theatre"
-  };
-  
-  const selectedSeats = location.state?.selectedSeats || ["C7", "C8", "C9"];
-  const totalAmount = location.state?.totalAmount || 3850;
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
+    // Auto-generate payment reference when first and last name are filled
     if ((name === 'firstName' || name === 'lastName') && formData.birthdate) {
       const fullName = name === 'firstName' 
         ? `${value} ${formData.lastName}` 
@@ -79,7 +60,7 @@ const Checkout = () => {
     );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!isFormValid()) {
@@ -91,33 +72,14 @@ const Checkout = () => {
       toast.error('Please upload proof of payment to complete your booking');
       return;
     }
-
-    if (!user) {
-      toast.error('You must be logged in to complete a booking');
-      navigate('/auth');
-      return;
-    }
     
     setIsProcessing(true);
     
-    try {
-      const bookingSuccess = await saveBooking({
-        showId: eventData.id,
-        userId: user.id,
-        seats: selectedSeats.length,
-        totalAmount,
-        customerInfo: {
-          name: `${formData.firstName} ${formData.lastName}`,
-          email: formData.email,
-          birthdate: formData.birthdate,
-          paymentReference: formData.paymentReference
-        }
-      });
-
-      if (!bookingSuccess) {
-        throw new Error('Failed to save booking');
-      }
+    // Simulate payment verification
+    setTimeout(() => {
+      setIsProcessing(false);
       
+      // Store form data in session storage for confirmation page
       sessionStorage.setItem('bookingInfo', JSON.stringify({
         customerName: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
@@ -126,17 +88,13 @@ const Checkout = () => {
       }));
       
       navigate('/confirmation');
-    } catch (error) {
-      console.error('Error processing booking:', error);
-      toast.error('There was an error processing your booking. Please try again.');
-    } finally {
-      setIsProcessing(false);
-    }
+    }, 2000);
   };
 
   return (
     <div className="py-8">
       <div className="container-custom max-w-5xl">
+        {/* Breadcrumb navigation */}
         <div className="mb-6">
           <Button 
             variant="ghost" 
@@ -151,6 +109,7 @@ const Checkout = () => {
         <p className="text-theater-muted mb-8">Complete your purchase to secure your tickets</p>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Payment form */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-elevation-1 p-6">
               <h2 className="text-xl font-bold mb-6">Payment Information</h2>
@@ -227,7 +186,7 @@ const Checkout = () => {
                     <ol className="text-sm space-y-2 pl-6 list-decimal">
                       <li>Open your banking app and select PayShap as payment method</li>
                       <li>Enter the PayShap ID: <span className="font-medium">0817058446</span></li>
-                      <li>Enter the amount: <span className="font-medium">{formatCurrency(totalAmount)}</span></li>
+                      <li>Enter the amount: <span className="font-medium">R3850.00</span></li>
                       <li>Use the reference below when making payment</li>
                       <li>Upload a screenshot of your payment confirmation</li>
                     </ol>
@@ -264,29 +223,34 @@ const Checkout = () => {
             </div>
           </div>
           
+          {/* Order summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-elevation-1 p-6 sticky top-24">
               <h2 className="text-xl font-bold mb-4">Order Summary</h2>
               
               <div className="border-b pb-4 mb-4">
-                <h3 className="font-medium">{eventData.title}</h3>
-                <p className="text-sm text-theater-muted">{eventData.date} • {eventData.time}</p>
+                <h3 className="font-medium">Hamlet</h3>
+                <p className="text-sm text-theater-muted">Apr 15, 2025 • 19:30</p>
                 <div className="mt-3 bg-muted/30 p-2 rounded-md">
-                  <p className="text-sm font-medium">Selected Seats: {selectedSeats.length}</p>
+                  <p className="text-sm font-medium">Selected Seats: 3</p>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {selectedSeats.map((seat: string) => (
-                      <span key={seat} className="bg-theater-primary text-white text-xs px-2 py-1 rounded-full">
-                        {seat}
-                      </span>
-                    ))}
+                    <span className="bg-theater-primary text-white text-xs px-2 py-1 rounded-full">
+                      C7
+                    </span>
+                    <span className="bg-theater-primary text-white text-xs px-2 py-1 rounded-full">
+                      C8
+                    </span>
+                    <span className="bg-theater-primary text-white text-xs px-2 py-1 rounded-full">
+                      C9
+                    </span>
                   </div>
                 </div>
               </div>
               
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between">
-                  <span>Tickets ({selectedSeats.length})</span>
-                  <span>{formatCurrency(totalAmount - 550)}</span>
+                  <span>Tickets (3)</span>
+                  <span>R3300.00</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Booking Fee</span>
@@ -301,7 +265,7 @@ const Checkout = () => {
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between font-bold">
                   <span>Total</span>
-                  <span className="text-theater-primary">{formatCurrency(totalAmount)}</span>
+                  <span className="text-theater-primary">R3850.00</span>
                 </div>
               </div>
               

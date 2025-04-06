@@ -16,8 +16,8 @@ const Index = () => {
       <section className="relative h-[80vh] bg-theater-dark flex items-center">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1493962853295-0fd70327578a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1074&q=80"
-            alt="South African Landscape"
+            src="https://images.unsplash.com/photo-1567942712661-82b9b407abbf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80"
+            alt="Theater"
             className="w-full h-full object-cover opacity-40"
           />
         </div>
@@ -172,6 +172,28 @@ const Index = () => {
               <p className="text-theater-muted">
                 Transparent pricing ensures you know exactly what you're paying for your tickets.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Newsletter section */}
+      <section className="bg-theater-primary text-white py-12">
+        <div className="container-custom">
+          <div className="text-center max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold mb-4">Stay Updated</h2>
+            <p className="mb-6">
+              Subscribe to our newsletter and be the first to know about new performances, special offers, and exclusive events.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="Your email address"
+                className="px-4 py-3 rounded-md flex-grow text-theater-dark focus:outline-none"
+              />
+              <Button className="bg-white text-theater-primary hover:bg-white/90">
+                Subscribe
+              </Button>
             </div>
           </div>
         </div>
