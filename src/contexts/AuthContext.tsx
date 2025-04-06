@@ -1,234 +1,258 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { supabaseExtended } from '@/integrations/supabase/client-extended';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-type AuthContextType = {
-  session: Session | null;
+interface User {
+  id: string;
+  email: string;
+  user_metadata?: {
+    first_name?: string;
+    last_name?: string;
+  };
+}
+
+interface AuthContextType {
   user: User | null;
-  isAdmin: boolean;
   isLoading: boolean;
+  isAdmin: boolean;
+  signUp: (email: string, password: string, data: any) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (userData: {
-    email: string;
-    password: string;
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    employeeNumber?: string;
-  }) => Promise<void>;
   signOut: () => Promise<void>;
-  logUserAction: (action: string, metadata?: any) => Promise<void>;
-  validateAdminCode: (employeeNumber: string) => Promise<boolean>;
-};
+  adminSignUp: (email: string, password: string, employeeNumber: string, data: any) => Promise<void>;
+  adminSignIn: (email: string, password: string) => Promise<void>;
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Check if user is admin
-          setTimeout(async () => {
-            const { data, error } = await supabaseExtended
-              .from('profiles')
-              .select('role')
-              .eq('id', session.user.id)
-              .single();
-              
-            if (!error && data && data.role) {
-              setIsAdmin(data.role === 'admin');
-            } else {
-              setIsAdmin(false);
-            }
-          }, 0);
-        } else {
-          setIsAdmin(false);
-        }
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    // Check active session
+    const checkSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
       
-      if (session?.user) {
-        supabaseExtended
+      if (error) {
+        console.error('Error checking session:', error);
+        setIsLoading(false);
+        return;
+      }
+      
+      if (data?.session) {
+        setUser(data.session.user as User);
+        
+        // Check if user is admin
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.session.user.id)
+          .single();
+        
+        setIsAdmin(profileData?.role === 'admin');
+      }
+      
+      setIsLoading(false);
+    };
+    
+    checkSession();
+    
+    // Listen for authentication changes
+    const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session) {
+        setUser(session.user as User);
+        
+        // Check if user is admin
+        const { data: profileData } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', session.user.id)
-          .single()
-          .then(({ data, error }) => {
-            if (!error && data && data.role) {
-              setIsAdmin(data.role === 'admin');
-            }
-            setIsLoading(false);
-          })
-          .catch(() => {
-            setIsLoading(false);
-          });
+          .single();
+        
+        setIsAdmin(profileData?.role === 'admin');
       } else {
-        setIsLoading(false);
+        setUser(null);
+        setIsAdmin(false);
       }
+      
+      setIsLoading(false);
     });
-
-    return () => subscription.unsubscribe();
+    
+    return () => {
+      data.subscription.unsubscribe();
+    };
   }, []);
-
-  const signIn = async (email: string, password: string) => {
+  
+  const signUp = async (email: string, password: string, userData: any) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      
-      if (error) {
-        throw error;
-      }
-      
-      // Log user sign in
-      await logUserAction('sign_in');
-      
-      toast.success('Successfully signed in');
-      navigate('/');
-    } catch (error: any) {
-      toast.error(`Error signing in: ${error.message}`);
-    }
-  };
-
-  const signUp = async (userData: {
-    email: string;
-    password: string;
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    employeeNumber?: string;
-  }) => {
-    try {
-      const { email, password, firstName, lastName, phone, employeeNumber } = userData;
-      let role = 'customer';
-      
-      // If employee number is provided, validate it and set role to admin
-      if (employeeNumber) {
-        const isValid = await validateAdminCode(employeeNumber);
-        if (!isValid) {
-          throw new Error('Invalid employee number');
-        }
-        role = 'admin';
-      }
-      
-      const { error } = await supabase.auth.signUp({ 
-        email, 
+      setIsLoading(true);
+      const { error } = await supabase.auth.signUp({
+        email,
         password,
         options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            phone,
-            role
-          }
+          data: userData
         }
       });
       
       if (error) {
+        toast.error(error.message);
         throw error;
       }
       
-      // If admin account, mark the employee number as used
-      if (employeeNumber && role === 'admin') {
-        await supabaseExtended
-          .from('admin_codes')
-          .update({ used: true })
-          .eq('employee_number', employeeNumber);
-      }
-      
-      // Log user sign up
-      await logUserAction('sign_up');
-      
-      toast.success('Successfully signed up! Please check your email for confirmation.');
-    } catch (error: any) {
-      toast.error(`Error signing up: ${error.message}`);
+      toast.success('Signup successful! Please verify your email.');
+    } catch (error) {
+      console.error('Signup error:', error);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
-
+  
+  const signIn = async (email: string, password: string) => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+      
+      toast.success('Successfully signed in!');
+      navigate('/');
+    } catch (error) {
+      console.error('Sign in error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   const signOut = async () => {
     try {
-      // Log user sign out before actually signing out
-      await logUserAction('sign_out');
-      
+      setIsLoading(true);
       const { error } = await supabase.auth.signOut();
+      
       if (error) {
+        toast.error(error.message);
         throw error;
       }
-      toast.success('Successfully signed out');
-      navigate('/auth');
-    } catch (error: any) {
-      toast.error(`Error signing out: ${error.message}`);
+      
+      toast.success('Successfully signed out.');
+      navigate('/');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  const logUserAction = async (action: string, metadata?: any) => {
-    if (user) {
-      try {
-        await supabaseExtended.from('user_logs').insert({
-          user_id: user.id,
-          action,
-          metadata: metadata || {}
-        });
-      } catch (error) {
-        console.error('Error logging user action:', error);
-      }
-    }
-  };
-
-  const validateAdminCode = async (employeeNumber: string): Promise<boolean> => {
+  
+  const adminSignUp = async (email: string, password: string, employeeNumber: string, userData: any) => {
     try {
-      const { data, error } = await supabaseExtended
+      setIsLoading(true);
+      // First check if employee number is valid
+      const { data: adminCode, error: codeError } = await supabase
         .from('admin_codes')
         .select('*')
         .eq('employee_number', employeeNumber)
         .eq('used', false)
         .single();
       
-      if (error || !data) {
-        return false;
+      if (codeError || !adminCode) {
+        toast.error('Invalid employee number or already used.');
+        throw new Error('Invalid employee number');
       }
       
-      return true;
+      // Create the admin user with role set to admin
+      const adminData = {
+        ...userData,
+        role: 'admin'
+      };
+      
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: adminData
+        }
+      });
+      
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+      
+      // Mark the admin code as used
+      await supabase
+        .from('admin_codes')
+        .update({ used: true })
+        .eq('id', adminCode.id);
+      
+      toast.success('Admin account created! Please verify your email.');
     } catch (error) {
-      console.error('Error validating admin code:', error);
-      return false;
+      console.error('Admin signup error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const adminSignIn = async (email: string, password: string) => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+      
+      // Check if the user is an admin
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+      
+      if (profileError || profileData?.role !== 'admin') {
+        await supabase.auth.signOut();
+        toast.error('This account does not have admin privileges.');
+        throw new Error('Not an admin account');
+      }
+      
+      toast.success('Admin signed in successfully!');
+      navigate('/admin');
+    } catch (error) {
+      console.error('Admin sign in error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return (
-    <AuthContext.Provider value={{ 
-      session, 
-      user, 
-      isAdmin,
-      isLoading,
-      signIn, 
-      signUp, 
-      signOut,
-      logUserAction,
-      validateAdminCode
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = {
+    user,
+    isLoading,
+    isAdmin,
+    signUp,
+    signIn,
+    signOut,
+    adminSignUp,
+    adminSignIn
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

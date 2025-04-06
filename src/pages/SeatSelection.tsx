@@ -1,14 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { events, generateTheaterSeating, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const SeatSelection = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const event = events.find(e => e.id === id);
   
   const [seating, setSeating] = useState<any[]>([]);
@@ -55,10 +56,27 @@ const SeatSelection = () => {
       toast.error('Please select at least one seat to continue.');
       return;
     }
+
+    if (!user) {
+      toast.error('You must be logged in to book tickets');
+      navigate('/auth', { state: { returnTo: `/seating/${id}` } });
+      return;
+    }
     
-    // In a real app, we would store the selected seats and event information
-    // in a global state or context. For this demo, we'll just navigate.
-    navigate('/checkout');
+    // Pass the selected seats and event information to the checkout page
+    navigate('/checkout', { 
+      state: { 
+        selectedSeats: selectedSeats.map(seat => seat.id),
+        event: {
+          id: id,
+          title: event?.title,
+          date: event?.date,
+          time: event?.time,
+          venue: event?.venue
+        },
+        totalAmount: totalPrice
+      } 
+    });
   };
 
   if (!event) {

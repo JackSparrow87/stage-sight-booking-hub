@@ -1,15 +1,18 @@
-
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { ChevronLeft, CreditCard, Info, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import PaymentProofUploader from '@/components/PaymentProofUploader';
+import { useAuth } from '@/contexts/AuthContext';
+import { saveBooking } from '@/utils/bookingUtils';
 
 const Checkout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentProofUploaded, setPaymentProofUploaded] = useState(false);
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
@@ -21,11 +24,21 @@ const Checkout = () => {
     paymentReference: ''
   });
 
+  const eventData = location.state?.event || {
+    id: "default-event-id",
+    title: "Hamlet",
+    date: "Apr 15, 2025",
+    time: "19:30",
+    venue: "Royal Theatre"
+  };
+  
+  const selectedSeats = location.state?.selectedSeats || ["C7", "C8", "C9"];
+  const totalAmount = location.state?.totalAmount || 3850;
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
-    // Auto-generate payment reference when first and last name are filled
     if ((name === 'firstName' || name === 'lastName') && formData.birthdate) {
       const fullName = name === 'firstName' 
         ? `${value} ${formData.lastName}` 
@@ -60,7 +73,7 @@ const Checkout = () => {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!isFormValid()) {
@@ -72,14 +85,33 @@ const Checkout = () => {
       toast.error('Please upload proof of payment to complete your booking');
       return;
     }
+
+    if (!user) {
+      toast.error('You must be logged in to complete a booking');
+      navigate('/auth');
+      return;
+    }
     
     setIsProcessing(true);
     
-    // Simulate payment verification
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      const bookingSuccess = await saveBooking({
+        showId: eventData.id,
+        userId: user.id,
+        seats: selectedSeats.length,
+        totalAmount,
+        customerInfo: {
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          birthdate: formData.birthdate,
+          paymentReference: formData.paymentReference
+        }
+      });
+
+      if (!bookingSuccess) {
+        throw new Error('Failed to save booking');
+      }
       
-      // Store form data in session storage for confirmation page
       sessionStorage.setItem('bookingInfo', JSON.stringify({
         customerName: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
@@ -88,13 +120,17 @@ const Checkout = () => {
       }));
       
       navigate('/confirmation');
-    }, 2000);
+    } catch (error) {
+      console.error('Error processing booking:', error);
+      toast.error('There was an error processing your booking. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
     <div className="py-8">
       <div className="container-custom max-w-5xl">
-        {/* Breadcrumb navigation */}
         <div className="mb-6">
           <Button 
             variant="ghost" 
@@ -109,7 +145,6 @@ const Checkout = () => {
         <p className="text-theater-muted mb-8">Complete your purchase to secure your tickets</p>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Payment form */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-elevation-1 p-6">
               <h2 className="text-xl font-bold mb-6">Payment Information</h2>
@@ -223,7 +258,6 @@ const Checkout = () => {
             </div>
           </div>
           
-          {/* Order summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-elevation-1 p-6 sticky top-24">
               <h2 className="text-xl font-bold mb-4">Order Summary</h2>
