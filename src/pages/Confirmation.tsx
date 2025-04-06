@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Calendar, Clock, MapPin, Check, Download, Mail, ExternalLink } from 'lucide-react';
+import { Calendar, Clock, MapPin, Check, Download, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { generateTicketPDF } from '@/utils/ticketGenerator';
 import { toast } from 'sonner';
@@ -11,7 +11,6 @@ interface BookingInfo {
   email: string;
   birthdate: string;
   paymentReference: string;
-  paymentProofUrl?: string;
 }
 
 const Confirmation = () => {
@@ -71,12 +70,6 @@ const Confirmation = () => {
     // In a real application, this would call an API to resend the email
     toast.success(`Ticket sent to ${bookingInfo?.email || 'your email'}`);
   };
-
-  const handleViewPaymentProof = () => {
-    if (bookingInfo?.paymentProofUrl) {
-      window.open(bookingInfo.paymentProofUrl, '_blank');
-    }
-  };
   
   if (!bookingInfo) {
     return null; // Will redirect in useEffect
@@ -109,12 +102,6 @@ const Confirmation = () => {
               <Mail className="h-4 w-4" />
               Resend Email
             </Button>
-            {bookingInfo.paymentProofUrl && (
-              <Button variant="outline" className="flex items-center gap-2" onClick={handleViewPaymentProof}>
-                <ExternalLink className="h-4 w-4" />
-                View Payment Proof
-              </Button>
-            )}
           </div>
         </div>
         

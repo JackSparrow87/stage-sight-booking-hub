@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatDate, formatCurrency } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
 
 interface EventCardProps {
   id: string;
@@ -26,9 +26,9 @@ const EventCard: React.FC<EventCardProps> = ({
   price,
   category,
 }) => {
-  // Parse price to number for consistent formatting
-  const numericPrice = parseFloat(price.replace(/[^0-9.]/g, ''));
-  
+  // Ensure price is displayed in Rands
+  const formattedPrice = price.startsWith('R') ? price : `R${price.replace(/^\$/, '')}`;
+
   return (
     <div className="card-event group">
       <div className="relative overflow-hidden aspect-[3/2]">
@@ -57,7 +57,7 @@ const EventCard: React.FC<EventCardProps> = ({
         <div className="flex justify-between items-center">
           <div>
             <span className="text-xs text-theater-muted">Starting from</span>
-            <p className="font-bold text-theater-primary">{formatCurrency(numericPrice)}</p>
+            <p className="font-bold text-theater-primary">{formattedPrice}</p>
           </div>
           <Link to={`/events/${id}`}>
             <Button className="bg-theater-primary">Book</Button>
