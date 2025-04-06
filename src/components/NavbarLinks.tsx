@@ -1,12 +1,13 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, User, ShoppingCart, Search } from 'lucide-react';
+import { LogOut, User, ShoppingCart, Search, Shield } from 'lucide-react';
 
 const NavbarLinks = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, isAdmin, signOut } = useAuth();
   
   const links = [
@@ -16,8 +17,16 @@ const NavbarLinks = () => {
 
   // Add admin link only for admin users
   if (isAdmin) {
-    links.push({ path: '/admin', label: 'Admin' });
+    links.push({ path: '/admin', label: 'Admin Dashboard' });
   }
+
+  const handleAuthClick = () => {
+    if (isAdmin) {
+      navigate('/admin-auth');
+    } else {
+      navigate('/auth');
+    }
+  };
 
   return (
     <div className="flex items-center">
@@ -47,21 +56,28 @@ const NavbarLinks = () => {
           </Button>
         </Link>
         
-        {/* Cart Icon */}
-        <Link to="/cart">
-          <Button variant="ghost" size="icon">
-            <ShoppingCart 
-              size={20} 
-              className={location.pathname === '/cart' ? 'text-theater-primary' : ''} 
-            />
-          </Button>
-        </Link>
+        {/* Cart Icon - Only for non-admin users */}
+        {!isAdmin && (
+          <Link to="/cart">
+            <Button variant="ghost" size="icon">
+              <ShoppingCart 
+                size={20} 
+                className={location.pathname === '/cart' ? 'text-theater-primary' : ''} 
+              />
+            </Button>
+          </Link>
+        )}
         
         {/* User/Auth Section */}
         {user ? (
           <div className="flex items-center gap-2">
             <span className="text-sm hidden md:inline-block">
               {user.email}
+              {isAdmin && (
+                <span className="ml-2 text-xs bg-indigo-100 text-indigo-800 py-0.5 px-2 rounded-full">
+                  Admin
+                </span>
+              )}
             </span>
             <Button 
               variant="ghost" 
@@ -74,16 +90,15 @@ const NavbarLinks = () => {
             </Button>
           </div>
         ) : (
-          <Link to="/auth">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex items-center gap-1"
-            >
-              <User size={16} /> 
-              <span>Login</span>
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleAuthClick}
+            className="flex items-center gap-1"
+          >
+            {isAdmin ? <Shield size={16} /> : <User size={16} />}
+            <span>Login</span>
+          </Button>
         )}
       </div>
     </div>

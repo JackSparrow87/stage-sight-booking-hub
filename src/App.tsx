@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Events from "./pages/Events";
@@ -18,6 +18,8 @@ import Layout from "./components/Layout";
 import Search from "./pages/Search";
 import Cart from "./pages/Cart";
 import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 
 const queryClient = new QueryClient();
 
@@ -36,7 +38,11 @@ const App = () => (
               <Route path="seating/:id" element={<SeatSelection />} />
               <Route path="checkout" element={<Checkout />} />
               <Route path="confirmation" element={<Confirmation />} />
-              <Route path="admin" element={<Admin />} />
+              <Route path="admin" element={
+                <AdminRoute>
+                  <Admin />
+                </AdminRoute>
+              } />
               <Route path="auth" element={<Auth />} />
               <Route path="admin-auth" element={<AdminAuth />} />
               <Route path="search" element={<Search />} />

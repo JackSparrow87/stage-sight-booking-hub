@@ -12,9 +12,17 @@ type AuthContextType = {
   isAdmin: boolean;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, isAdmin?: boolean) => Promise<void>;
+  signUp: (userData: {
+    email: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    employeeNumber?: string;
+  }) => Promise<void>;
   signOut: () => Promise<void>;
   logUserAction: (action: string, metadata?: any) => Promise<void>;
+  validateAdminCode: (employeeNumber: string) => Promise<boolean>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -100,14 +108,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp = async (email: string, password: string, makeAdmin = false) => {
+  const signUp = async (userData: {
+    email: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    employeeNumber?: string;
+  }) => {
     try {
+      const { email, password, firstName, lastName, phone, employeeNumber } = userData;
+      let role = 'customer';
+      
+      // If employee number is provided, validate it and set role to admin
+      if (employeeNumber) {
+        const isValid = await validateAdminCode(employeeNumber);
+        if (!isValid) {
+          throw new Error('Invalid employee number');
+        }
+        role = 'admin';
+      }
+      
       const { error } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
           data: {
-            role: makeAdmin ? 'admin' : 'customer'
+            first_name: firstName,
+            last_name: lastName,
+            phone,
+            role
           }
         }
       });
@@ -116,12 +146,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
+      // If admin account, mark the employee number as used
+      if (employeeNumber && role === 'admin') {
+        await supabaseExtended
+          .from('admin_codes')
+          .update({ used: true })
+          .eq('employee_number', employeeNumber);
+      }
+      
       // Log user sign up
       await logUserAction('sign_up');
       
       toast.success('Successfully signed up! Please check your email for confirmation.');
     } catch (error: any) {
       toast.error(`Error signing up: ${error.message}`);
+      throw error;
     }
   };
 
@@ -155,6 +194,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const validateAdminCode = async (employeeNumber: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabaseExtended
+        .from('admin_codes')
+        .select('*')
+        .eq('employee_number', employeeNumber)
+        .eq('used', false)
+        .single();
+      
+      if (error || !data) {
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error validating admin code:', error);
+      return false;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       session, 
@@ -164,7 +223,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signIn, 
       signUp, 
       signOut,
-      logUserAction
+      logUserAction,
+      validateAdminCode
     }}>
       {children}
     </AuthContext.Provider>
