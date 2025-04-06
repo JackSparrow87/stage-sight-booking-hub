@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +21,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   adminSignUp: (email: string, password: string, employeeNumber: string, data: any) => Promise<void>;
   adminSignIn: (email: string, password: string) => Promise<void>;
+  validateAdminCode: (employeeNumber: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -155,6 +155,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
   
+  const validateAdminCode = async (employeeNumber: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_codes')
+        .select('*')
+        .eq('employee_number', employeeNumber)
+        .eq('used', false)
+        .single();
+      
+      if (error || !data) {
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error validating admin code:', error);
+      return false;
+    }
+  };
+  
   const adminSignUp = async (email: string, password: string, employeeNumber: string, userData: any) => {
     try {
       setIsLoading(true);
@@ -249,7 +269,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signOut,
     adminSignUp,
-    adminSignIn
+    adminSignIn,
+    validateAdminCode
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

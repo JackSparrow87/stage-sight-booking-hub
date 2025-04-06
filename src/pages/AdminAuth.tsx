@@ -32,7 +32,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 const AdminAuth = () => {
-  const { user, signIn, signUp, isAdmin, validateAdminCode } = useAuth();
+  const { user, adminSignIn, adminSignUp, isAdmin, validateAdminCode } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -72,7 +72,7 @@ const AdminAuth = () => {
   const onLoginSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      await signIn(data.email, data.password);
+      await adminSignIn(data.email, data.password);
     } catch (error) {
       console.error("Login error:", error);
     } finally {
@@ -91,14 +91,16 @@ const AdminAuth = () => {
         return;
       }
 
-      await signUp({
-        email: data.email,
-        password: data.password,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phone: data.phone,
-        employeeNumber: data.employeeNumber,
-      });
+      await adminSignUp(
+        data.email, 
+        data.password, 
+        data.employeeNumber, 
+        {
+          first_name: data.firstName,
+          last_name: data.lastName,
+          phone: data.phone
+        }
+      );
       
       toast.success("Admin account created successfully");
       signupForm.reset();
