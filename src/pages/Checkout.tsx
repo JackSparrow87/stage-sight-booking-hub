@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { ChevronLeft, CreditCard, Info, AlertCircle } from 'lucide-react';
@@ -8,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import PaymentProofUploader from '@/components/PaymentProofUploader';
 import { useAuth } from '@/contexts/AuthContext';
-import { saveBooking } from '@/utils/bookingUtils';
+import { supabaseExtended } from '@/integrations/supabase/client-extended';
 
 // Format currency to Rands
 const formatCurrency = (amount: number) => {
@@ -101,28 +100,49 @@ const Checkout = () => {
     setIsProcessing(true);
     
     try {
-      const bookingSuccess = await saveBooking({
-        showId: eventData.id,
-        userId: user.id,
-        seats: selectedSeats.length,
-        totalAmount,
-        customerInfo: {
-          name: `${formData.firstName} ${formData.lastName}`,
-          email: formData.email,
-          birthdate: formData.birthdate,
-          paymentReference: formData.paymentReference
+      let paymentProofUrl = null;
+      if (paymentProof) {
+        const fileExt = paymentProof.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+        
+        const { data: uploadData, error: uploadError } = await supabaseExtended.storage
+          .from('theater_images')
+          .upload(fileName, paymentProof);
+        
+        if (uploadError) {
+          console.error('Error uploading payment proof:', uploadError);
+          throw new Error('Failed to upload payment proof');
         }
-      });
-
-      if (!bookingSuccess) {
-        throw new Error('Failed to save booking');
+        
+        const { data: urlData } = supabaseExtended.storage
+          .from('theater_images')
+          .getPublicUrl(fileName);
+        
+        paymentProofUrl = urlData.publicUrl;
+      }
+      
+      const { data, error } = await supabaseExtended
+        .from('bookings')
+        .insert({
+          user_id: user.id,
+          show_id: eventData.id,
+          seats: selectedSeats.length,
+          total_amount: totalAmount,
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error saving booking:', error);
+        throw new Error('Failed to save booking information');
       }
       
       sessionStorage.setItem('bookingInfo', JSON.stringify({
         customerName: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
         birthdate: formData.birthdate,
-        paymentReference: formData.paymentReference
+        paymentReference: formData.paymentReference,
+        paymentProofUrl
       }));
       
       navigate('/confirmation');
