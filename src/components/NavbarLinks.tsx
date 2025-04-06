@@ -21,8 +21,8 @@ const NavbarLinks = () => {
   }
 
   const handleAuthClick = () => {
-    if (isAdmin) {
-      navigate('/admin-auth');
+    if (user && isAdmin) {
+      navigate('/admin');
     } else {
       navigate('/auth');
     }

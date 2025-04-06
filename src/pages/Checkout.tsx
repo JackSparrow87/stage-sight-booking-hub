@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { ChevronLeft, CreditCard, Info, AlertCircle } from 'lucide-react';
@@ -8,6 +9,11 @@ import { toast } from 'sonner';
 import PaymentProofUploader from '@/components/PaymentProofUploader';
 import { useAuth } from '@/contexts/AuthContext';
 import { saveBooking } from '@/utils/bookingUtils';
+
+// Format currency to Rands
+const formatCurrency = (amount: number) => {
+  return `R${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+};
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -221,7 +227,7 @@ const Checkout = () => {
                     <ol className="text-sm space-y-2 pl-6 list-decimal">
                       <li>Open your banking app and select PayShap as payment method</li>
                       <li>Enter the PayShap ID: <span className="font-medium">0817058446</span></li>
-                      <li>Enter the amount: <span className="font-medium">R3850.00</span></li>
+                      <li>Enter the amount: <span className="font-medium">{formatCurrency(totalAmount)}</span></li>
                       <li>Use the reference below when making payment</li>
                       <li>Upload a screenshot of your payment confirmation</li>
                     </ol>
@@ -263,28 +269,24 @@ const Checkout = () => {
               <h2 className="text-xl font-bold mb-4">Order Summary</h2>
               
               <div className="border-b pb-4 mb-4">
-                <h3 className="font-medium">Hamlet</h3>
-                <p className="text-sm text-theater-muted">Apr 15, 2025 • 19:30</p>
+                <h3 className="font-medium">{eventData.title}</h3>
+                <p className="text-sm text-theater-muted">{eventData.date} • {eventData.time}</p>
                 <div className="mt-3 bg-muted/30 p-2 rounded-md">
-                  <p className="text-sm font-medium">Selected Seats: 3</p>
+                  <p className="text-sm font-medium">Selected Seats: {selectedSeats.length}</p>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    <span className="bg-theater-primary text-white text-xs px-2 py-1 rounded-full">
-                      C7
-                    </span>
-                    <span className="bg-theater-primary text-white text-xs px-2 py-1 rounded-full">
-                      C8
-                    </span>
-                    <span className="bg-theater-primary text-white text-xs px-2 py-1 rounded-full">
-                      C9
-                    </span>
+                    {selectedSeats.map((seat: string) => (
+                      <span key={seat} className="bg-theater-primary text-white text-xs px-2 py-1 rounded-full">
+                        {seat}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
               
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between">
-                  <span>Tickets (3)</span>
-                  <span>R3300.00</span>
+                  <span>Tickets ({selectedSeats.length})</span>
+                  <span>{formatCurrency(totalAmount - 550)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Booking Fee</span>
@@ -299,7 +301,7 @@ const Checkout = () => {
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between font-bold">
                   <span>Total</span>
-                  <span className="text-theater-primary">R3850.00</span>
+                  <span className="text-theater-primary">{formatCurrency(totalAmount)}</span>
                 </div>
               </div>
               

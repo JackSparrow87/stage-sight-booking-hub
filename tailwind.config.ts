@@ -67,13 +67,13 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))'
         },
-        // Theatre booking custom colors
+        // Theatre booking custom colors - updated to match JetBrains style
         theater: {
-          primary: '#6E59A5',
-          secondary: '#9b87f5',
-          accent: '#FEC6A1',
+          primary: '#167DFF',
+          secondary: '#4BA0FF',
+          accent: '#F9A825',
           background: '#F6F6F7',
-          dark: '#333333',
+          dark: '#1A1F29',
           muted: '#8E9196',
           light: '#FFFFFF',
         },
