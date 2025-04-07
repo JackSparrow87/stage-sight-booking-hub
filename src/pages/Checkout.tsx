@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -19,7 +18,6 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import PaymentProofUploader from '@/components/PaymentProofUploader';
 
-// Define the schema for our form
 const formSchema = z.object({
   firstName: z.string().min(2, {
     message: "First name must be at least 2 characters.",
@@ -38,40 +36,14 @@ const formSchema = z.object({
   }),
 });
 
-// Type for our form values
-type CheckoutFormValues = z.infer<typeof formSchema>;
-
 const CheckoutForm = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [processing, setProcessing] = useState(false);
   const [paymentProofUploaded, setPaymentProofUploaded] = useState(false);
-  const [eventData, setEventData] = useState<any>(null);
-  const [selectedSeats, setSelectedSeats] = useState<any[]>([]);
 
   const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
   const [paymentProofUrl, setPaymentProofUrl] = useState<string>('');
-  
-  // Load event and seat data from sessionStorage
-  useEffect(() => {
-    const storedEventData = sessionStorage.getItem('eventData');
-    const storedSeatsData = sessionStorage.getItem('selectedSeats');
-    
-    if (!storedEventData || !storedSeatsData) {
-      toast.error('No booking information found. Please select seats first.');
-      navigate('/events');
-      return;
-    }
-    
-    try {
-      setEventData(JSON.parse(storedEventData));
-      setSelectedSeats(JSON.parse(storedSeatsData));
-    } catch (error) {
-      console.error('Error parsing stored data:', error);
-      toast.error('Error loading booking information.');
-      navigate('/events');
-    }
-  }, [navigate]);
   
   const handlePaymentProofUpload = (file: File, url: string) => {
     setPaymentProofFile(file);
@@ -79,7 +51,7 @@ const CheckoutForm = () => {
     setPaymentProofUploaded(true);
   };
   
-  const form = useForm<CheckoutFormValues>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       firstName: user?.user_metadata?.first_name || "",
@@ -91,38 +63,33 @@ const CheckoutForm = () => {
   });
 
   const calculateTotal = () => {
-    return selectedSeats.length * 950;
+    const seatsData = JSON.parse(sessionStorage.getItem('selectedSeats') || '[]');
+    return seatsData.length * 950;
   };
 
-  const handleSubmit = async (data: CheckoutFormValues) => {
+  const handleSubmit = async (data: FormData) => {
     setProcessing(true);
     
     try {
-      if (!eventData?.id) {
+      // Get event data from storage
+      const eventData = JSON.parse(sessionStorage.getItem('eventData') || '{}');
+      const seatsData = JSON.parse(sessionStorage.getItem('selectedSeats') || '[]');
+      
+      if (!eventData.id) {
         throw new Error('No event selected');
       }
       
-      if (!selectedSeats.length) {
+      if (!seatsData.length) {
         throw new Error('No seats selected');
-      }
-      
-      // Ensure eventData.id is a valid UUID
-      const eventId = typeof eventData.id === 'string' && 
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventData.id) 
-        ? eventData.id 
-        : null;
-        
-      if (!eventId) {
-        throw new Error('Invalid event ID format. Expected UUID.');
       }
       
       // Create the booking in Supabase
       const { data: bookingData, error } = await supabase
         .from('bookings')
         .insert({
-          user_id: user?.id || '00000000-0000-0000-0000-000000000000', // Use a valid UUID fallback
-          show_id: eventId,
-          seats: selectedSeats.length,
+          user_id: user?.id || '00000000-0000-0000-0000-000000000000',
+          show_id: eventData.id,
+          seats: seatsData.length,
           total_amount: calculateTotal(),
           customer_name: `${data.firstName} ${data.lastName}`,
           customer_email: data.email,
@@ -148,7 +115,7 @@ const CheckoutForm = () => {
         eventDate: eventData.date,
         eventTime: eventData.time,
         venue: eventData.venue,
-        seats: selectedSeats.map((seat: any) => seat.id),
+        seats: seatsData,
         totalAmount: `R${calculateTotal().toFixed(2)}`,
         paymentProofUrl: paymentProofUrl
       };
@@ -171,15 +138,6 @@ const CheckoutForm = () => {
       <p className="text-theater-muted mb-8">
         Enter your details and payment information to complete your booking.
       </p>
-      
-      {eventData && (
-        <div className="bg-white rounded-xl shadow-elevation-1 p-4 mb-6">
-          <h2 className="font-bold">Booking Summary</h2>
-          <p className="text-sm">{eventData.title} - {eventData.date}</p>
-          <p className="text-sm">Selected Seats: {selectedSeats.length}</p>
-          <p className="font-bold text-theater-primary mt-2">Total: R{calculateTotal().toFixed(2)}</p>
-        </div>
-      )}
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">

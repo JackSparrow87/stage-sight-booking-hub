@@ -37,9 +37,7 @@ export type Database = {
           customer_email: string | null
           customer_name: string | null
           id: string
-          payment_proof_url: string | null
           payment_reference: string | null
-          payment_url: string | null
           seats: number
           show_id: string
           total_amount: number
@@ -51,9 +49,7 @@ export type Database = {
           customer_email?: string | null
           customer_name?: string | null
           id?: string
-          payment_proof_url?: string | null
           payment_reference?: string | null
-          payment_url?: string | null
           seats: number
           show_id: string
           total_amount: number
@@ -65,9 +61,7 @@ export type Database = {
           customer_email?: string | null
           customer_name?: string | null
           id?: string
-          payment_proof_url?: string | null
           payment_reference?: string | null
-          payment_url?: string | null
           seats?: number
           show_id?: string
           total_amount?: number

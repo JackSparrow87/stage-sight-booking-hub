@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -114,7 +113,7 @@ const Auth = () => {
             first_name: data.firstName,
             last_name: data.lastName,
             phone: data.phone || null
-          } as any) // Using as any to bypass TypeScript for now
+          })
           .eq('id', user.id);
         
         if (profileError) console.error("Error updating profile:", profileError);

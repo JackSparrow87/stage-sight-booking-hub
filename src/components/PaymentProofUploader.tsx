@@ -5,7 +5,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, AlertTriangle, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface PaymentProofUploaderProps {
   onUploadComplete: (file: File, url: string) => void;
@@ -16,7 +15,6 @@ const PaymentProofUploader: React.FC<PaymentProofUploaderProps> = ({
   onUploadComplete,
   isUploaded
 }) => {
-  const { user } = useAuth();
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -65,41 +63,29 @@ const PaymentProofUploader: React.FC<PaymentProofUploaderProps> = ({
     try {
       setIsUploading(true);
       
-      // Create a unique file path for the upload
+      // Upload to Supabase storage
       const timestamp = new Date().getTime();
       const filePath = `payment_proofs/${timestamp}_${file.name.replace(/\s+/g, '_')}`;
       
-      // Upload the file to Supabase storage
       const { data, error } = await supabase.storage
         .from('theater_images')
         .upload(filePath, file);
       
       if (error) {
-        // If there's an error with storage, use a fake URL for demo purposes
-        console.error('Storage upload error:', error);
-        toast.warning('Using demo mode for file upload');
-        
-        const fakePublicUrl = `https://example.com/payment_proofs/${timestamp}_${file.name}`;
-        setUploadedFile(file);
-        onUploadComplete(file, fakePublicUrl);
-      } else {
-        // Get the public URL for the uploaded file
-        const { data: urlData } = supabase.storage
-          .from('theater_images')
-          .getPublicUrl(data.path);
-        
-        // Pass the file and URL to the parent component
-        onUploadComplete(file, urlData.publicUrl);
-        toast.success('Payment proof uploaded successfully');
+        throw error;
       }
       
+      // Get the public URL
+      const { data: urlData } = supabase.storage
+        .from('theater_images')
+        .getPublicUrl(data.path);
+      
+      // Pass the file and URL to the parent component
+      onUploadComplete(file, urlData.publicUrl);
+      toast.success('Payment proof uploaded successfully');
     } catch (error: any) {
+      toast.error(`Error uploading file: ${error.message}`);
       console.error('Upload error:', error);
-      // Fallback to demo mode if something goes wrong
-      toast.warning('Using demo mode due to an error');
-      const timestamp = new Date().getTime();
-      const fakePublicUrl = `https://example.com/payment_proofs/${timestamp}_${file.name}`;
-      onUploadComplete(file, fakePublicUrl);
     } finally {
       setIsUploading(false);
     }
