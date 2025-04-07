@@ -26,11 +26,6 @@ const EventCard: React.FC<EventCardProps> = ({
   price,
   category,
 }) => {
-  const formatCurrency = (value: string) => {
-    const numericValue = parseFloat(value);
-    return `R${numericValue.toFixed(2)}`;
-  };
-
   return (
     <div className="card-event group">
       <div className="relative overflow-hidden aspect-[3/2]">
@@ -59,7 +54,7 @@ const EventCard: React.FC<EventCardProps> = ({
         <div className="flex justify-between items-center">
           <div>
             <span className="text-xs text-theater-muted">Starting from</span>
-            <p className="font-bold text-theater-primary">{formatCurrency(price)}</p>
+            <p className="font-bold text-theater-primary">{price.replace('$', 'R')}</p>
           </div>
           <Link to={`/events/${id}`}>
             <Button className="bg-theater-primary">Book</Button>

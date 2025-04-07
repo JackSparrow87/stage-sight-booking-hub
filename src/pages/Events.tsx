@@ -1,66 +1,20 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Search, Calendar, FilterX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EventCard from '@/components/EventCard';
+import { events } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
-
-const fetchEvents = async () => {
-  const { data, error } = await supabase
-    .from('shows')
-    .select('*')
-    .order('date', { ascending: true });
-
-  if (error) {
-    throw error;
-  }
-  
-  return data.map(show => ({
-    id: show.id,
-    title: show.title,
-    venue: show.venue || '',
-    date: new Date(show.date).toISOString().split('T')[0],
-    time: new Date(show.date).toTimeString().slice(0, 5),
-    price: show.price.toString(),
-    category: show.category || '',
-    imageUrl: show.image_url
-  }));
-};
 
 const Events = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
 
-  const { data: events = [], isLoading, refetch } = useQuery({
-    queryKey: ["events"],
-    queryFn: fetchEvents
-  });
-
-  // Subscribe to real-time changes
-  useEffect(() => {
-    const channel = supabase
-      .channel('public:shows')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'shows' }, 
-        () => {
-          // Refetch data when there's a change
-          refetch();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [refetch]);
-
-  const categories = [...new Set(events.map(event => event.category).filter(Boolean))];
+  const categories = [...new Set(events.map(event => event.category))];
 
   const filteredEvents = events.filter(event => {
     const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (event.venue && event.venue.toLowerCase().includes(searchTerm.toLowerCase()));
+                          event.venue.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === '' || event.category === selectedCategory;
     
     return matchesSearch && matchesCategory;
@@ -99,8 +53,7 @@ const Events = () => {
           <div>
             <h2 className="text-2xl font-bold mb-1">All Events</h2>
             <p className="text-theater-muted">
-              {isLoading ? 'Loading events...' : 
-                `${filteredEvents.length} ${filteredEvents.length === 1 ? 'event' : 'events'} found`}
+              {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'} found
             </p>
           </div>
           
@@ -125,9 +78,7 @@ const Events = () => {
         </div>
 
         {/* Events Grid */}
-        {isLoading ? (
-          <div className="text-center py-12">Loading events...</div>
-        ) : filteredEvents.length > 0 ? (
+        {filteredEvents.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredEvents.map((event) => (
               <EventCard
