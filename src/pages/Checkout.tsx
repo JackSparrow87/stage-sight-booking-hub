@@ -110,7 +110,7 @@ const CheckoutForm = () => {
       const { data: bookingData, error } = await supabase
         .from('bookings')
         .insert({
-          user_id: user?.id || '00000000-0000-0000-0000-000000000000',
+          user_id: user?.id || '00000000-0000-0000-0000-000000000000', // Use a valid UUID fallback
           show_id: eventData.id,
           seats: selectedSeats.length,
           total_amount: calculateTotal(),
