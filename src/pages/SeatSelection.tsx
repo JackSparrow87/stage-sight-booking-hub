@@ -56,8 +56,11 @@ const SeatSelection = () => {
       return;
     }
     
-    // In a real app, we would store the selected seats and event information
-    // in a global state or context. For this demo, we'll just navigate.
+    // Save selected seats and event information to sessionStorage
+    sessionStorage.setItem('selectedSeats', JSON.stringify(selectedSeats));
+    sessionStorage.setItem('eventData', JSON.stringify(event));
+    
+    // Navigate to checkout page
     navigate('/checkout');
   };
 
