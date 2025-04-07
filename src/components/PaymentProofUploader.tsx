@@ -3,9 +3,11 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, AlertTriangle, CheckCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface PaymentProofUploaderProps {
-  onUploadComplete: (file: File) => void;
+  onUploadComplete: (file: File, url: string) => void;
   isUploaded: boolean;
 }
 
@@ -15,6 +17,7 @@ const PaymentProofUploader: React.FC<PaymentProofUploaderProps> = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -42,15 +45,50 @@ const PaymentProofUploader: React.FC<PaymentProofUploaderProps> = ({
     }
   };
   
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     // Check if the file is an image or PDF
     if (!file.type.match('image.*') && file.type !== 'application/pdf') {
-      alert('Please upload an image or PDF file');
+      toast.error('Please upload an image or PDF file');
+      return;
+    }
+    
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File is too large. Maximum size is 5MB');
       return;
     }
     
     setUploadedFile(file);
-    onUploadComplete(file);
+    
+    try {
+      setIsUploading(true);
+      
+      // Upload to Supabase storage
+      const timestamp = new Date().getTime();
+      const filePath = `payment_proofs/${timestamp}_${file.name.replace(/\s+/g, '_')}`;
+      
+      const { data, error } = await supabase.storage
+        .from('theater_images')
+        .upload(filePath, file);
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Get the public URL
+      const { data: urlData } = supabase.storage
+        .from('theater_images')
+        .getPublicUrl(data.path);
+      
+      // Pass the file and URL to the parent component
+      onUploadComplete(file, urlData.publicUrl);
+      toast.success('Payment proof uploaded successfully');
+    } catch (error: any) {
+      toast.error(`Error uploading file: ${error.message}`);
+      console.error('Upload error:', error);
+    } finally {
+      setIsUploading(false);
+    }
   };
   
   return (
@@ -69,7 +107,7 @@ const PaymentProofUploader: React.FC<PaymentProofUploaderProps> = ({
           >
             <Upload className="mx-auto h-10 w-10 text-theater-muted mb-4" />
             <p className="mb-2 text-theater-muted">
-              Drag & drop your proof of payment or click to browse
+              {isUploading ? 'Uploading...' : 'Drag & drop your proof of payment or click to browse'}
             </p>
             <p className="text-xs text-theater-muted mb-4">
               Accepted formats: JPG, PNG, PDF (Max size: 5MB)
@@ -80,12 +118,14 @@ const PaymentProofUploader: React.FC<PaymentProofUploaderProps> = ({
               className="hidden"
               accept="image/*,application/pdf"
               onChange={handleFileInput}
+              disabled={isUploading}
             />
             <Button 
               variant="outline" 
               onClick={() => document.getElementById('file-upload')?.click()}
+              disabled={isUploading}
             >
-              Select File
+              {isUploading ? 'Uploading...' : 'Select File'}
             </Button>
           </div>
           
@@ -107,6 +147,7 @@ const PaymentProofUploader: React.FC<PaymentProofUploaderProps> = ({
               variant="outline" 
               size="sm" 
               onClick={() => document.getElementById('file-upload')?.click()}
+              disabled={isUploading}
             >
               Change
             </Button>

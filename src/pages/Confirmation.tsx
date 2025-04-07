@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Check, Download, Mail } from 'lucide-react';
@@ -11,11 +10,18 @@ interface BookingInfo {
   email: string;
   birthdate: string;
   paymentReference: string;
+  confirmationNumber?: string;
+  eventTitle?: string;
+  eventDate?: string;
+  eventTime?: string;
+  venue?: string;
+  seats?: string[];
+  totalAmount?: string;
+  paymentProofUrl?: string;
 }
 
 const Confirmation = () => {
   const navigate = useNavigate();
-  const confirmationNumber = `TKT-${Math.floor(100000 + Math.random() * 900000)}`;
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [bookingInfo, setBookingInfo] = useState<BookingInfo | null>(null);
   
@@ -31,16 +37,24 @@ const Confirmation = () => {
     
     try {
       const parsedInfo = JSON.parse(storedBookingInfo) as BookingInfo;
+      
+      // If confirmationNumber doesn't exist in parsed info, generate one
+      if (!parsedInfo.confirmationNumber) {
+        parsedInfo.confirmationNumber = `TKT-${Math.floor(100000 + Math.random() * 900000)}`;
+        // Save it back to session storage to keep it consistent
+        sessionStorage.setItem('bookingInfo', JSON.stringify(parsedInfo));
+      }
+      
       setBookingInfo(parsedInfo);
       
       // Generate PDF ticket
       const ticketPdf = generateTicketPDF({
-        eventName: 'Hamlet',
-        date: 'April 15, 2025',
-        time: '19:30',
-        venue: 'Royal Theatre, 123 Main St, New York, NY',
-        seats: ['C7', 'C8', 'C9'],
-        confirmationNumber,
+        eventName: parsedInfo.eventTitle || 'Theater Event',
+        date: parsedInfo.eventDate || 'Upcoming date',
+        time: parsedInfo.eventTime || '19:30',
+        venue: parsedInfo.venue || 'Theater Venue',
+        seats: parsedInfo.seats || ['A1'],
+        confirmationNumber: parsedInfo.confirmationNumber,
         customerName: parsedInfo.customerName
       });
       
@@ -49,13 +63,13 @@ const Confirmation = () => {
       console.error('Error parsing booking info:', error);
       toast.error('There was an error processing your booking information.');
     }
-  }, [confirmationNumber, navigate]);
+  }, [navigate]);
   
   const handleDownloadTicket = () => {
     if (pdfUrl) {
       const link = document.createElement('a');
       link.href = pdfUrl;
-      link.download = `Ticket_${confirmationNumber}.pdf`;
+      link.download = `Ticket_${bookingInfo?.confirmationNumber || 'Confirmation'}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -90,7 +104,7 @@ const Confirmation = () => {
           
           <div className="bg-muted/30 p-4 rounded-lg mb-6">
             <p className="text-sm text-theater-muted mb-1">Confirmation Number</p>
-            <p className="text-xl font-bold">{confirmationNumber}</p>
+            <p className="text-xl font-bold">{bookingInfo.confirmationNumber}</p>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -107,7 +121,7 @@ const Confirmation = () => {
         
         <div className="bg-white rounded-xl shadow-elevation-1 overflow-hidden mb-8">
           <div className="bg-theater-primary text-white p-4">
-            <h2 className="font-bold text-xl">Hamlet</h2>
+            <h2 className="font-bold text-xl">{bookingInfo.eventTitle || 'Theater Event'}</h2>
           </div>
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -115,11 +129,11 @@ const Confirmation = () => {
                 <h3 className="font-medium text-theater-muted mb-2">Date & Time</h3>
                 <div className="flex items-center mb-2">
                   <Calendar className="h-5 w-5 mr-2 text-theater-primary" />
-                  <span>April 15, 2025</span>
+                  <span>{bookingInfo.eventDate || 'Upcoming date'}</span>
                 </div>
                 <div className="flex items-center">
                   <Clock className="h-5 w-5 mr-2 text-theater-primary" />
-                  <span>19:30 (Doors open at 19:00)</span>
+                  <span>{bookingInfo.eventTime || '19:30'} (Doors open 30 minutes earlier)</span>
                 </div>
               </div>
               <div>
@@ -127,8 +141,8 @@ const Confirmation = () => {
                 <div className="flex items-start">
                   <MapPin className="h-5 w-5 mr-2 text-theater-primary mt-1" />
                   <div>
-                    <p className="font-medium">Royal Theatre</p>
-                    <p className="text-theater-muted">123 Main St, New York, NY</p>
+                    <p className="font-medium">{bookingInfo.venue?.split(',')[0] || 'Theater Venue'}</p>
+                    <p className="text-theater-muted">{bookingInfo.venue?.split(',').slice(1).join(',') || 'Venue Address'}</p>
                   </div>
                 </div>
               </div>
@@ -141,15 +155,11 @@ const Confirmation = () => {
               
               <h3 className="font-medium text-theater-muted mb-3 mt-6">Your Seats</h3>
               <div className="flex flex-wrap gap-2 mb-6">
-                <span className="bg-theater-primary text-white text-sm px-3 py-1 rounded-full">
-                  C7
-                </span>
-                <span className="bg-theater-primary text-white text-sm px-3 py-1 rounded-full">
-                  C8
-                </span>
-                <span className="bg-theater-primary text-white text-sm px-3 py-1 rounded-full">
-                  C9
-                </span>
+                {(bookingInfo.seats || ['A1']).map((seat, index) => (
+                  <span key={index} className="bg-theater-primary text-white text-sm px-3 py-1 rounded-full">
+                    {seat}
+                  </span>
+                ))}
               </div>
               
               <div className="bg-muted/30 p-3 rounded-md mb-6">
@@ -160,7 +170,7 @@ const Confirmation = () => {
               
               <div className="flex justify-between border-t pt-4">
                 <span className="font-medium">Total Paid</span>
-                <span className="font-bold text-theater-primary">R3850.00</span>
+                <span className="font-bold text-theater-primary">{bookingInfo.totalAmount || 'R0.00'}</span>
               </div>
             </div>
           </div>
