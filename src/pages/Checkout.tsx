@@ -106,12 +106,22 @@ const CheckoutForm = () => {
         throw new Error('No seats selected');
       }
       
+      // Ensure eventData.id is a valid UUID
+      const eventId = typeof eventData.id === 'string' && 
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventData.id) 
+        ? eventData.id 
+        : null;
+        
+      if (!eventId) {
+        throw new Error('Invalid event ID format. Expected UUID.');
+      }
+      
       // Create the booking in Supabase
       const { data: bookingData, error } = await supabase
         .from('bookings')
         .insert({
           user_id: user?.id || '00000000-0000-0000-0000-000000000000', // Use a valid UUID fallback
-          show_id: eventData.id,
+          show_id: eventId,
           seats: selectedSeats.length,
           total_amount: calculateTotal(),
           customer_name: `${data.firstName} ${data.lastName}`,
