@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,6 +19,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import PaymentProofUploader from '@/components/PaymentProofUploader';
 
+// Define the schema for our form
 const formSchema = z.object({
   firstName: z.string().min(2, {
     message: "First name must be at least 2 characters.",
@@ -36,6 +38,9 @@ const formSchema = z.object({
   }),
 });
 
+// Type for our form values
+type CheckoutFormValues = z.infer<typeof formSchema>;
+
 const CheckoutForm = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -51,7 +56,7 @@ const CheckoutForm = () => {
     setPaymentProofUploaded(true);
   };
   
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       firstName: user?.user_metadata?.first_name || "",
@@ -67,7 +72,7 @@ const CheckoutForm = () => {
     return seatsData.length * 950;
   };
 
-  const handleSubmit = async (data: FormData) => {
+  const handleSubmit = async (data: CheckoutFormValues) => {
     setProcessing(true);
     
     try {

@@ -89,7 +89,7 @@ const fetchBookings = async () => {
     throw error;
   }
   
-  return data;
+  return data as Booking[];
 };
 
 const Admin = () => {
