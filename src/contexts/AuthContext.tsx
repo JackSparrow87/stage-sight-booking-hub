@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -59,23 +60,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        // Fix: Properly handle the promise by adding a try/catch block
+        // Fix: Use a properly structured Promise chain without catch on PromiseLike
         try {
-          supabaseExtended
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single()
-            .then(({ data, error }) => {
+          const checkAdminStatus = async () => {
+            try {
+              const { data, error } = await supabaseExtended
+                .from('profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .single();
+                
               if (!error && data && data.role) {
                 setIsAdmin(data.role === 'admin');
               }
-              setIsLoading(false);
-            })
-            .catch(error => {
+            } catch (error) {
               console.error("Error checking admin status:", error);
+            } finally {
               setIsLoading(false);
-            });
+            }
+          };
+          
+          checkAdminStatus();
         } catch (error) {
           console.error("Error in session check:", error);
           setIsLoading(false);
